@@ -1,6 +1,12 @@
-python3 -m venv env
-source ./env/bin/activate
-git clone https://github.com/airockchip/yolov5.git
+if [ ! -d env ]; then
+	python3 -m venv env
+fi
+	source ./env/bin/activate
+
+if [ ! -d yolov5 ]; then
+	git clone https://github.com/airockchip/yolov5.git
+fi
+
 cd yolov5
 pip3 install -r requirements.txt
 python3 export.py --rknpu --weight yolov5n.pt
