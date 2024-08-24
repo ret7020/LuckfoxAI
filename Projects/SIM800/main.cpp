@@ -14,10 +14,14 @@ int main()
 	printf("Init status: %d\n", initStatus);
 	if (initStatus)
 	{
-		char command[] = "AT\r";
-		char rxBuf[2];
-		module.sendCommand(command, rxBuf);
-		//module.setupInternet();
+		if (module.checkAT())
+		{
+			module.setupInternet(MODULE_APN);
+
+		}
+		
 	
 	} else return 1;
+
+	module.finishInternet();
 }

@@ -70,21 +70,44 @@ public:
 
 	int sendCommand(const char* command, char* answerBuffer)
 	{
-		if (writeRaw(command)) return readRaw(answerBuffer);
+		if (writeRaw(command)){
+			usleep(500000);
+			return readRaw(answerBuffer);
+		}
 		return 0;
 	}
 
-	int checkAT()
+	bool checkAT()
 	{
 		if (initStatus)
 		{
 
-			if (sendCommand("AT\r", rxBuf))
-			return true;
+			if (sendCommand("AT\r", rxBuf)){
+				if (rxBuf[0] == 'O' && rxBuf[1] == 'K' ) return true;
+			}
+				
 		}
 		return false;
 	}
 
-	void setupInternet(){}
+	void setupInternet(const char* apn)
+	{
+		sendCommand("AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\"\r", rxBuf);
+		char apnSetupCommand[sizeof(apn) + 25];
+		strcpy(apnSetupCommand, "AT+SAPBR=3,1,\"APN\",\"");
+		strcat(apnSetupCommand, apn);
+		strcat(apnSetupCommand, "\"\r");
 
+		sendCommand(apnSetupCommand, rxBuf);
+		sendCommand("AT+SAPBR=1,1\r", rxBuf);
+		sendCommand("AT+SAPBR=2,1\r", rxBuf);
+		sendCommand("AT+HTTPINIT\r", rxBuf);
+		sendCommand("AT+HTTPPARA=\"CID\",1\r", rxBuf);
+	}
+
+	void finishInternet()
+	{
+		sendCommand("AT+HTTPTERM\r", rxBuf);
+		sendCommand("AT+SAPBR=0,1\r", rxBuf);
+	}
 };
