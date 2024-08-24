@@ -1,12 +1,13 @@
 #pragma once
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
 #include <termios.h>
 #include <unistd.h>
+#include <charconv>
+#include <string>
 
 
 #define WORKING_BAUD B115200
@@ -92,22 +93,72 @@ public:
 
 	void setupInternet(const char* apn)
 	{
-		sendCommand("AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\"\r", rxBuf);
-		char apnSetupCommand[sizeof(apn) + 25];
-		strcpy(apnSetupCommand, "AT+SAPBR=3,1,\"APN\",\"");
-		strcat(apnSetupCommand, apn);
-		strcat(apnSetupCommand, "\"\r");
+		if (initStatus){
+			sendCommand("AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\"\r", rxBuf);
+			char apnSetupCommand[sizeof(apn) + 25];
+			strcpy(apnSetupCommand, "AT+SAPBR=3,1,\"APN\",\"");
+			strcat(apnSetupCommand, apn);
+			strcat(apnSetupCommand, "\"\r");
 
-		sendCommand(apnSetupCommand, rxBuf);
-		sendCommand("AT+SAPBR=1,1\r", rxBuf);
-		sendCommand("AT+SAPBR=2,1\r", rxBuf);
-		sendCommand("AT+HTTPINIT\r", rxBuf);
-		sendCommand("AT+HTTPPARA=\"CID\",1\r", rxBuf);
+			sendCommand(apnSetupCommand, rxBuf);
+			sendCommand("AT+SAPBR=1,1\r", rxBuf);
+			sendCommand("AT+SAPBR=2,1\r", rxBuf);
+			sendCommand("AT+HTTPINIT\r", rxBuf);
+			sendCommand("AT+HTTPPARA=\"CID\",1\r", rxBuf);
+		}
 	}
 
 	void finishInternet()
 	{
-		sendCommand("AT+HTTPTERM\r", rxBuf);
-		sendCommand("AT+SAPBR=0,1\r", rxBuf);
+		if (initStatus)
+		{
+			sendCommand("AT+HTTPTERM\r", rxBuf);
+			sendCommand("AT+SAPBR=0,1\r", rxBuf);
+		}
 	}
+
+	// HTTP requests
+	
+	void get(const char* url, char* response)
+	{
+		if (initStatus)
+		{
+			char setUrlCommand[sizeof(url) + 25];
+			strcpy(setUrlCommand, "AT+HTTPPARA=\"URL\",\"");
+			strcat(setUrlCommand, url);
+			strcat(setUrlCommand, "\"\r");
+			sendCommand(setUrlCommand, rxBuf);
+
+			sendCommand("AT+HTTPACTION=0\r", rxBuf);
+			sleep(2);
+			sendCommand("AT+HTTPREAD\r", response);
+		}
+	}
+
+	void post(const char* url, char* response, char* data, int latency=10000)
+	{
+		if (initStatus)
+		{
+			char setUrlCommand[sizeof(url) + 25];
+			strcpy(setUrlCommand, "AT+HTTPPARA=\"URL\",\"");
+			strcat(setUrlCommand, url);
+			strcat(setUrlCommand, "\"\r");
+			sendCommand(setUrlCommand, rxBuf);
+			char setDataParams[70];
+			strcpy(setDataParams, "AT+HTTPDATA=");
+			strcat(setDataParams, std::to_string(sizeof(data)).c_str());
+			strcat(setDataParams, ",");
+			strcat(setDataParams, std::to_string(latency).c_str());
+			sendCommand(setDataParams, rxBuf);
+
+			// Set post data
+			char setDataCommand[sizeof(data) + 1];
+			strcpy(setDataCommand, data);
+			strcat(setDataCommand, "\r");
+			sendCommand(setDataCommand, rxBuf);
+			sendCommand("AT+HTTPACTION=1\r", rxBuf);
+			readRaw(response);
+		}
+	}
+	
 };

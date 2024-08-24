@@ -17,6 +17,9 @@ int main()
 		if (module.checkAT())
 		{
 			module.setupInternet(MODULE_APN);
+			char response[2000];
+			module.get("https://httpbin.org/get", response);
+			printf("Response: %s", response);
 
 		}
 		
