@@ -10,5 +10,5 @@ fi
 cd ultralytics_yolov8
 pip3 install -r requirements.txt
 export PYTHONPATH=./
-python3 -c "from ultralytics import YOLO; m = YOLO('yolov8n.pt'); m.export(format='onnx')"
+python3 -c "from ultralytics import YOLO; m = YOLO('yolov8n.pt'); m.export(format='rknn')"
 echo "Exported model path: ./ultralytics_yolov8/yolov8n.onnx"
