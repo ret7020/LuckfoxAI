@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "sim900.h"
+#include "sim800.h"
 
 // Config
 
@@ -9,12 +9,12 @@
 
 int main()
 {
-	SIM900 module = SIM900(MODULE_UART);
+	SIM800 module = SIM800(MODULE_UART);
 	int initStatus = module.init();
 	printf("Init status: %d\n", initStatus);
 	if (initStatus)
 	{
-		char command[] = "AT";
+		char command[] = "AT\r";
 		char rxBuf[2];
 		module.sendCommand(command, rxBuf);
 		//module.setupInternet();

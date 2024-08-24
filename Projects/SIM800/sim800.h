@@ -10,8 +10,9 @@
 
 
 #define WORKING_BAUD B115200
+#define MAX_RX_BYTES 2048
 
-class SIM900
+class SIM800
 {
 private:
 	int uartFd;
@@ -19,11 +20,12 @@ private:
 	struct termios tty;
 	ssize_t bytesWritten;
 	int bytesRead;
+	char rxBuf[MAX_RX_BYTES];
 
 public:
 	bool initStatus = false;
 
-	SIM900(const char* port)
+	SIM800(const char* port)
 	{
 		this->port = port;
 	}
@@ -52,10 +54,8 @@ public:
 		return initStatus;
 	}
 
-	bool writeRaw(char* data)
+	bool writeRaw(const char* data)
 	{
-		// char txBuff[MAX_COMMAND_LENGTH];
-		// strcpy(txBuff, data);
 		bytesWritten = write(uartFd, data, sizeof(data));
 		if (bytesWritten > 0) return 1;
 		return 0;
@@ -68,20 +68,18 @@ public:
 		return bytesRead;
 	}
 
-	void sendCommand(char* command, char* rxBuff)
+	int sendCommand(const char* command, char* answerBuffer)
 	{
-		printf("Sending command: %s\n", command);
-		if (writeRaw(command))
-		{
-			int rxCnt = readRaw(rxBuff);
-			printf("Recieved %d bytes", rxCnt);
-		}
+		if (writeRaw(command)) return readRaw(answerBuffer);
+		return 0;
 	}
 
 	int checkAT()
 	{
 		if (initStatus)
 		{
+
+			if (sendCommand("AT\r", rxBuf))
 			return true;
 		}
 		return false;

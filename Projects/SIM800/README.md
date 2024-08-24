@@ -1,5 +1,5 @@
 # Lite SIM900 lib
-Connect to Internet via sim900 UART module. Connection schematic:
+Connect to Internet via sim800/sim900 UART module. Connection schematic:
 
 Luckfox have a 3V logic, so you can connect it to module without voltage divider or logic level converters.
 ```
