@@ -1,5 +1,6 @@
-project(OpenCVMobile)
 cmake_minimum_required(VERSION 3.5)
+
+project(OpenCVMobile)
 set(CMAKE_CXX_STANDARD 11)
 
 SET(CMAKE_C_COMPILER "$ENV{GCC_COMPILER}-gcc")
