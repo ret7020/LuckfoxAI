@@ -1,16 +1,17 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-//#include "opencv2/opencv.hpp"
-#include <opencv2/videoio.hpp>
 #include <stdio.h>
+#include <chrono>
 
-// This is a video writer - record video from csi camera
+// OpenCV Mobile doesn't support VideoWriter
 
 #define DEVICE_PATH 11
 #define VIDEO_RECORD_FRAME_WIDTH 640
-#define VIDEO_RECORD_FRAME_HEIGHT 480
+#define VIDEO_RECORD_FRAME_HEIGHT 640
 
+double avgFps = 0.0;
+int framesRead = 0;
 int main()
 {
 	// Camera init
@@ -19,25 +20,23 @@ int main()
 	cap.set(cv::CAP_PROP_FRAME_HEIGHT, VIDEO_RECORD_FRAME_HEIGHT);
 	cap.open(DEVICE_PATH);
 
-	// Writer init
-	cv::VideoWriter video;
-	//("record.avi", CV_FOURCC('M','J','P','G'), 25, Size(cap.get(cv::CAP_PROP_FRAME_WIDTH), cap.get(cv::CAP_PROP_FRAME_HEIGHT)));
-
-
 	cv::Mat bgr;
 
 	// "Warmup" camera
 	for (int i = 0; i < 5; i++){cap >> bgr;}
 
 	for (int i = 0; i < 25 * 10; i++){
+		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 		cap >> bgr;
+		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+		double fps = 1 / std::chrono::duration<double>(end - begin).count();
+		avgFps += fps;
+		framesRead++;
 		if (bgr.empty()) break;
-		video.write(bgr);
 	}
+	printf("AVG FPS: %lf\n", avgFps / framesRead);
 
 	cap.release();
-	video.release();
-	
 
 	return 0;
 }

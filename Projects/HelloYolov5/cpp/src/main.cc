@@ -26,7 +26,7 @@
 #include "dma_alloc.cpp"
 
 #define USE_DMA 1
-
+#define MODEL_INPUT_SIZE 640
 int main(int argc, char **argv)
 {
     const char *modelPath = argv[1];
@@ -48,8 +48,8 @@ int main(int argc, char **argv)
     }
     // If yolo OK
     cv::Mat image = cv::imread(imagePath); // Read from file
-    cv::Mat bgr640(640, 640, CV_8UC3, rknn_app_ctx.input_mems[0]->virt_addr); // Feed to yolo
-    cv::resize(image, bgr640, cv::Size(640, 640), 0, 0, cv::INTER_LINEAR);
+    cv::Mat bgr640(MODEL_INPUT_SIZE, MODEL_INPUT_SIZE, CV_8UC3, rknn_app_ctx.input_mems[0]->virt_addr); // Feed to yolo
+    cv::resize(image, bgr640, cv::Size(MODEL_INPUT_SIZE, MODEL_INPUT_SIZE), 0, 0, cv::INTER_LINEAR);
     inference_yolov5_model(&rknn_app_ctx, &od_results);
     for (int i = 0; i < od_results.count; i++)
     {
