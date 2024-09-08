@@ -14,6 +14,12 @@ int main()
 	char txBuf[] = "ping\n";
 	struct termios tty;
 	ssize_t writeLen;
+	int serialFd;
+	char rxBuffer[256];
+	int bytesRead;
+
+	serialFd = open(serialPort, O_RDWR | O_NOCTTY);
+
 	memset(&tty, 0, sizeof(tty));
 	
 
@@ -28,16 +34,20 @@ int main()
 	tty.c_cflag |= CS8;
 	
 	while (1){
-		writeLen = write(serial_fd, tx_buffer, sizeof(tx_buffer));
+		writeLen = write(serialFd, txBuf, sizeof(txBuf));
 		if (writeLen > 0)
 		{
-	
+			bytesRead = read(serialFd, rxBuffer, sizeof(rxBuffer));
+			if (bytesRead > 0) {
+				rxBuffer[bytesRead] = '\0';
+				printf("Recieved: %s", rxBuffer);
+				if (rxBuffer[0] == 'e') {
+					printf("Exit\n");
+					return 0;
+				}
+			}
 		}
 	}
-
-
-
-
 
 	return 0;
 }
