@@ -1,0 +1,13 @@
+#!/bin/sh
+
+case $1 in
+        start)
+                swapon /dev/mmcblk1p8
+                ;;
+        stop)
+                ;;
+        *)
+                exit 1
+                ;;
+esac
+

@@ -51,7 +51,16 @@ int main(int argc, char **argv)
     cv::Mat image = cv::imread(imagePath); // Read from file
     cv::Mat bgr640(MODEL_INPUT_SIZE, MODEL_INPUT_SIZE, CV_8UC3, rknn_app_ctx.input_mems[0]->virt_addr); // Feed to yolo
     cv::resize(image, bgr640, cv::Size(MODEL_INPUT_SIZE, MODEL_INPUT_SIZE), 0, 0, cv::INTER_LINEAR);
-    inference_yolov6_model(&rknn_app_ctx, , &od_results);
+
+    rknn_input inputs[rknn_app_ctx.io_num.n_input];
+    memset(inputs, 0, sizeof(inputs));
+    inputs[0].index = 0;
+    inputs[0].type = RKNN_TENSOR_UINT8;
+    inputs[0].fmt = RKNN_TENSOR_NHWC;
+    inputs[0].size = rknn_app_ctx.model_width * rknn_app_ctx.model_height * rknn_app_ctx.model_channel;
+    inputs[0].buf = image.data;
+    inference_yolov6_model(&rknn_app_ctx, inputs, &od_results);
+
     for (int i = 0; i < od_results.count; i++)
     {
             object_detect_result *det_result = &(od_results.results[i]);
