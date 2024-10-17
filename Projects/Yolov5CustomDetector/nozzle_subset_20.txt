@@ -1,0 +1,20 @@
+/home/stephan/Progs/LuckfoxAI/Projects/Yolov5CustomDetector/Nozzle_20_/1.jpg
+/home/stephan/Progs/LuckfoxAI/Projects/Yolov5CustomDetector/Nozzle_20_/0.jpg (4th copy)
+/home/stephan/Progs/LuckfoxAI/Projects/Yolov5CustomDetector/Nozzle_20_/1.jpg (3rd copy)
+/home/stephan/Progs/LuckfoxAI/Projects/Yolov5CustomDetector/Nozzle_20_/0.jpg (5th copy)
+/home/stephan/Progs/LuckfoxAI/Projects/Yolov5CustomDetector/Nozzle_20_/2.jpg (3rd copy)
+/home/stephan/Progs/LuckfoxAI/Projects/Yolov5CustomDetector/Nozzle_20_/1.jpg (4th copy)
+/home/stephan/Progs/LuckfoxAI/Projects/Yolov5CustomDetector/Nozzle_20_/3.jpg (3rd copy)
+/home/stephan/Progs/LuckfoxAI/Projects/Yolov5CustomDetector/Nozzle_20_/2.jpg (copy)
+/home/stephan/Progs/LuckfoxAI/Projects/Yolov5CustomDetector/Nozzle_20_/3.jpg
+/home/stephan/Progs/LuckfoxAI/Projects/Yolov5CustomDetector/Nozzle_20_/0.jpg (3rd copy)
+/home/stephan/Progs/LuckfoxAI/Projects/Yolov5CustomDetector/Nozzle_20_/2.jpg (4th copy)
+/home/stephan/Progs/LuckfoxAI/Projects/Yolov5CustomDetector/Nozzle_20_/0.jpg
+/home/stephan/Progs/LuckfoxAI/Projects/Yolov5CustomDetector/Nozzle_20_/1.jpg (copy)
+/home/stephan/Progs/LuckfoxAI/Projects/Yolov5CustomDetector/Nozzle_20_/2.jpg (5th copy)
+/home/stephan/Progs/LuckfoxAI/Projects/Yolov5CustomDetector/Nozzle_20_/2.jpg
+/home/stephan/Progs/LuckfoxAI/Projects/Yolov5CustomDetector/Nozzle_20_/2.jpg (another copy)
+/home/stephan/Progs/LuckfoxAI/Projects/Yolov5CustomDetector/Nozzle_20_/0.jpg (another copy)
+/home/stephan/Progs/LuckfoxAI/Projects/Yolov5CustomDetector/Nozzle_20_/1.jpg (another copy)
+/home/stephan/Progs/LuckfoxAI/Projects/Yolov5CustomDetector/Nozzle_20_/1.jpg (5th copy)
+/home/stephan/Progs/LuckfoxAI/Projects/Yolov5CustomDetector/Nozzle_20_/0.jpg (copy)
