@@ -503,7 +503,7 @@ static int process_i8_rv1106(int8_t *box_tensor, int32_t box_zp, float box_scale
 }
 #endif
 
-int post_process(rknn_app_context_t *app_ctx, void *outputs, letterbox_t *letter_box, float conf_threshold, float nms_threshold, object_detect_result_list *od_results)
+int post_process(rknn_app_context_t *app_ctx, void *outputs, float conf_threshold, float nms_threshold, object_detect_result_list *od_results)
 {
 #if defined(RV1106_1103) 
     rknn_tensor_mem **_outputs = (rknn_tensor_mem **)outputs;
@@ -636,17 +636,17 @@ int post_process(rknn_app_context_t *app_ctx, void *outputs, letterbox_t *letter
         }
         int n = indexArray[i];
 
-        float x1 = filterBoxes[n * 4 + 0] - letter_box->x_pad;
-        float y1 = filterBoxes[n * 4 + 1] - letter_box->y_pad;
+        float x1 = filterBoxes[n * 4 + 0];
+        float y1 = filterBoxes[n * 4 + 1];
         float x2 = x1 + filterBoxes[n * 4 + 2];
         float y2 = y1 + filterBoxes[n * 4 + 3];
         int id = classId[n];
         float obj_conf = objProbs[i];
 
-        od_results->results[last_count].box.left = (int)(clamp(x1, 0, model_in_w) / letter_box->scale);
-        od_results->results[last_count].box.top = (int)(clamp(y1, 0, model_in_h) / letter_box->scale);
-        od_results->results[last_count].box.right = (int)(clamp(x2, 0, model_in_w) / letter_box->scale);
-        od_results->results[last_count].box.bottom = (int)(clamp(y2, 0, model_in_h) / letter_box->scale);
+        od_results->results[last_count].box.left = (int)(clamp(x1, 0, model_in_w));
+        od_results->results[last_count].box.top = (int)(clamp(y1, 0, model_in_h));
+        od_results->results[last_count].box.right = (int)(clamp(x2, 0, model_in_w));
+        od_results->results[last_count].box.bottom = (int)(clamp(y2, 0, model_in_h));
         od_results->results[last_count].prop = obj_conf;
         od_results->results[last_count].cls_id = id;
         last_count++;

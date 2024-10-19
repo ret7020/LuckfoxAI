@@ -1,113 +1,99 @@
+
+// Copyright (c) 2023 by Rockchip Electronics Co., Ltd. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/*-------------------------------------------
+                Includes
+-------------------------------------------*/
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "yolov8.h"
-#include "image_utils.h"
-#include "file_utils.h"
-#include "image_drawing.h"
 
-#include <unistd.h>   
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
-#include <sys/mman.h>
-#include <linux/fb.h>
-#include <time.h>
 
-//opencv
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-#include <chrono>
 
-#include "dma_alloc.cpp"
 
-#define USE_DMA 1
 
+/*-------------------------------------------
+                  Main Function
+-------------------------------------------*/
 int main(int argc, char **argv)
 {
-    const char *modelPath = argv[1];
-    const char *imagePath = argv[2];
+    if (argc != 3)
+    {
+        printf("%s <model_path> <image_path>\n", argv[0]);
+        return -1;
+    }
+
+    const char *model_path = argv[1];
+    const char *image_path = argv[2];
 
     int ret;
     rknn_app_context_t rknn_app_ctx;
     memset(&rknn_app_ctx, 0, sizeof(rknn_app_context_t));
-    printf("Context\n");
 
     init_post_process();
 
-    ret = init_yolov8_model(modelPath, &rknn_app_ctx);
+    ret = init_yolov8_model(model_path, &rknn_app_ctx);
     if (ret != 0)
     {
-        printf("init_yolov8_model fail! ret=%d model_path=%s\n", ret, modelPath);
-	return 1;
-    } else {printf("Init ok\n");}
-
-    // If yolo OK
-    // cv::Mat image = cv::imread(imagePath); // Read from file
-    // cv::Mat bgr640(640, 640, CV_8UC3, rknn_app_ctx.input_mems[0]->virt_addr); // Feed to yolo
-    // cv::resize(image, bgr640, cv::Size(640, 640), 0, 0, cv::INTER_LINEAR);
-    //
-    //
-    //
-    //cv::Mat img = cv::imread(imagePath);
-
- 
-    image_buffer_t src_image;
-
-    //src_image.width = img.cols;
-    //src_image.height = img.rows;
-    //src_image.width_stride = img.step[1];  // Distance between elements in a row
-    //src_image.height_stride = img.step[0];
-
-    //src_image.format = IMAGE_FORMAT_RGB888;
-
-    memset(&src_image, 0, sizeof(image_buffer_t));
-    ret = read_image(imagePath, &src_image);
-
-    #if defined(RV1106_1103)
-    	    printf("Using DMA\n");
-	    //RV1106 rga requires that input and output bufs are memory allocated by dma
-	    ret = dma_buf_alloc(RV1106_CMA_HEAP_PATH, src_image.size, &rknn_app_ctx.img_dma_buf.dma_buf_fd,
-                       (void **) & (rknn_app_ctx.img_dma_buf.dma_buf_virt_addr));
-	    memcpy(rknn_app_ctx.img_dma_buf.dma_buf_virt_addr, src_image.virt_addr, src_image.size);
-	    dma_sync_cpu_to_device(rknn_app_ctx.img_dma_buf.dma_buf_fd);
-	    free(src_image.virt_addr);
-	    src_image.virt_addr = (unsigned char *)rknn_app_ctx.img_dma_buf.dma_buf_virt_addr;
-	    src_image.fd = rknn_app_ctx.img_dma_buf.dma_buf_fd;
-	    rknn_app_ctx.img_dma_buf.size = src_image.size;
-    #endif
-
-
-    object_detect_result_list od_results;
-
-
-    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    ret = inference_yolov8_model(&rknn_app_ctx, &src_image, &od_results);
-    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    double fps = 1 / std::chrono::duration<double>(end - begin).count();
-    printf("FPS: %lf", fps);
-    printf("Objects found: %d\n", od_results.count);
-    for (int i = 0; i < od_results.count; i++)
-    {
-	object_detect_result *det_result = &(od_results.results[i]);
-	int x1 = det_result->box.left;
-        int y1 = det_result->box.top;
-        int x2 = det_result->box.right;
-        int y2 = det_result->box.bottom;
-	printf("%d\n", x1);
-
-	draw_rectangle(&src_image, x1, y1, x2 - x1, y2 - y1, COLOR_BLUE, 3);
-	//printf("%s\n", coco_cls_to_name(det_result->cls_id));
+        printf("init_yolov8_model fail! ret=%d model_path=%s\n", ret, model_path);
     }
-    write_image("out.png", &src_image);
+
+    //ret = read_image(image_path, &src_image);
+    cv::Mat img = cv::imread(image_path);
+    /*rknn_input inputs[rknn_app_ctx.io_num.n_input];
+    void* buf = nullptr;
+    buf = (void*) img.data;
+
+    inputs[0].index = 0;
+    inputs[0].type = RKNN_TENSOR_UINT8;
+    inputs[0].fmt = RKNN_TENSOR_NHWC;
+    inputs[0].size = rknn_app_ctx.model_width * rknn_app_ctx.model_height * rknn_app_ctx.model_channel;
+    inputs[0].buf = buf;
+
+    ret = rknn_inputs_set(rknn_app_ctx.rknn_ctx, rknn_app_ctx.io_num.n_input, inputs);
+    if(ret < 0){
+    	printf("rknn_input_set fail! ret=%d\n", ret);
+        return -1;
+    }*/
+
+    rknn_output outputs[rknn_app_ctx.io_num.n_output];
+    memset(outputs, 0, sizeof(outputs));
+    for(uint32_t i = 0; i < rknn_app_ctx.io_num.n_output; i++){
+    	outputs[i].index = i;
+        outputs[i].want_float = (!rknn_app_ctx.is_quant);
+    }
 
 
+    cv::Mat bgr640(640, 640, CV_8UC3, rknn_app_ctx.input_mems[0]->virt_addr);
+    cv::resize(img, bgr640, cv::Size(640, 640), 0, 0, cv::INTER_LINEAR);
+    rknn_run(rknn_app_ctx.rknn_ctx, nullptr);
+    //app_ctx->output_mems
+    object_detect_result_list od_results;
+    post_process(&rknn_app_ctx, rknn_app_ctx.output_mems, 0.25, 0.45, &od_results);
+    //rknn_outputs_get(rknn_app_ctx.rknn_ctx, rknn_app_ctx.io_num.n_output, outputs, NULL);
+    printf("%d\n\n", od_results.count);
 
+
+  
+    
     return 0;
 }

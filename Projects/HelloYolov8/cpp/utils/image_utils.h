@@ -24,7 +24,7 @@ typedef struct {
  * @param image [out] Read image
  * @return int 0: success; -1: error
  */
-int read_image(const char* path, image_buffer_t* image);
+//int read_image(const char* path, image_buffer_t* image);
 
 /**
  * @brief Write image file (support jpg/png)
@@ -33,7 +33,7 @@ int read_image(const char* path, image_buffer_t* image);
  * @param image [in] Image for write (only support IMAGE_FORMAT_RGB888)
  * @return int 0: success; -1: error
  */
-int write_image(const char* path, const image_buffer_t* image);
+// int write_image(const char* path, const image_buffer_t* image);
 
 /**
  * @brief Convert image for resize and pixel format change

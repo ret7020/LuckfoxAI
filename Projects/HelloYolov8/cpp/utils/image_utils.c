@@ -11,12 +11,12 @@
 #define STBI_NO_THREAD_LOCALS
 #define STBI_ONLY_JPEG
 #define STBI_ONLY_PNG
-#include "stb_image.h"
+//#include "stb_image.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
+//#include "stb_image_write.h"
 
-#include "turbojpeg.h"
+// #include "turbojpeg.h"
 
 #include "image_utils.h"
 #include "file_utils.h"
@@ -32,11 +32,11 @@ static const char* filter_image_names[] = {
     NULL
 };
 
-static const char* subsampName[TJ_NUMSAMP] = {"4:4:4", "4:2:2", "4:2:0", "Grayscale", "4:4:0", "4:1:1"};
+//static const char* subsampName[TJ_NUMSAMP] = {"4:4:4", "4:2:2", "4:2:0", "Grayscale", "4:4:0", "4:1:1"};
 
-static const char* colorspaceName[TJ_NUMCS] = {"RGB", "YCbCr", "GRAY", "CMYK", "YCCK"};
+//static const char* colorspaceName[TJ_NUMCS] = {"RGB", "YCbCr", "GRAY", "CMYK", "YCCK"};
 
-static int image_file_filter(const struct dirent *entry)
+/*static int image_file_filter(const struct dirent *entry)
 {
     const char ** filter;
 
@@ -145,8 +145,9 @@ out:
     }
     return 0;
 }
+*/
 
-static int read_image_raw(const char* path, image_buffer_t* image)
+/*static int read_image_raw(const char* path, image_buffer_t* image)
 {
     FILE *fp = fopen(path, "rb");
     if(fp == NULL) {
@@ -175,9 +176,9 @@ static int read_image_raw(const char* path, image_buffer_t* image)
     }
 
     return 0;
-}
+}*/
 
-static int write_image_jpeg(const char* path, int quality, const image_buffer_t* image)
+/*static int write_image_jpeg(const char* path, int quality, const image_buffer_t* image)
 {
     int ret;
     int jpegSubsamp = TJSAMP_422;
@@ -207,9 +208,9 @@ static int write_image_jpeg(const char* path, int quality, const image_buffer_t*
     tjDestroy(handle);
 
 	return 0;
-}
+} */
 
-static int read_image_stb(const char* path, image_buffer_t* image)
+/*static int read_image_stb(const char* path, image_buffer_t* image)
 {
     // 默认图像为3通道
     int w, h, c;
@@ -238,9 +239,9 @@ static int read_image_stb(const char* path, image_buffer_t* image)
         image->format = IMAGE_FORMAT_RGB888;
     }
     return 0;
-}
+}*/
 
-int read_image(const char* path, image_buffer_t* image)
+/*int read_image(const char* path, image_buffer_t* image)
 {
     const char* _ext = strrchr(path, '.');
     if (!_ext) {
@@ -255,9 +256,9 @@ int read_image(const char* path, image_buffer_t* image)
     } else {
         return read_image_stb(path, image);
     }
-}
+}*/
 
-int write_image(const char* path, const image_buffer_t* img)
+/*int write_image(const char* path, const image_buffer_t* img)
 {
     int ret;
     int width = img->width;
@@ -286,7 +287,7 @@ int write_image(const char* path, const image_buffer_t* img)
         return -1;
     }
     return ret;
-}
+}*/
 
 static int crop_and_scale_image_c(int channel, unsigned char *src, int src_width, int src_height,
                                     int crop_x, int crop_y, int crop_width, int crop_height,

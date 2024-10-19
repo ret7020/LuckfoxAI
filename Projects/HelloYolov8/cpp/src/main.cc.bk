@@ -1,0 +1,201 @@
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "yolov8.h"
+//#include "image_utils.h"
+//#include "file_utils.h"
+//#include "image_drawing.h"
+
+#include <unistd.h>   
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
+#include <linux/fb.h>
+#include <time.h>
+
+//opencv
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+//#include <chrono>
+
+//#include "dma_alloc.cpp"
+
+
+#include <iostream>
+#include <fstream>
+#include <cstdlib>                  // for malloc and free
+				    //
+#define USE_DMA 1
+
+
+unsigned char* load_model(const char* filename, int& fileSize)
+{
+    std::ifstream file(filename, std::ios::binary | std::ios::ate); // Open file in binary mode and seek to the end
+
+    if (!file.is_open()) {
+        // std::cerr << "Failed to open file: " << filename << std::endl;
+	printf("IO error\n");
+        return nullptr;
+    }
+
+    fileSize = (int) file.tellg(); // Get the file size
+    file.seekg(0, std::ios::beg); // Seek back to the beginning
+
+    char* buffer = (char*)malloc(fileSize); // Allocate memory for the buffer
+
+    if (!buffer) {
+        //std::cerr << "Memory allocation failed." << std::endl;
+	printf("Mem alloc error\n");
+        return nullptr;
+    }
+
+    file.read(buffer, fileSize); // Read the entire file into the buffer
+    file.close(); // Close the file
+
+    return (unsigned char*) buffer;
+}
+
+
+void dump_tensor_attr(rknn_tensor_attr* attr)
+{
+  printf("\tindex=%d, name=%s, \n\t\tn_dims=%d, dims=[%d, %d, %d, %d], \n\t\tn_elems=%d, size=%d, fmt=%s, \n\t\ttype=%s, qnt_type=%s, "
+         "zp=%d, scale=%f\n",
+         attr->index, attr->name, attr->n_dims, attr->dims[0], attr->dims[1], attr->dims[2], attr->dims[3],
+         attr->n_elems, attr->size, get_format_string(attr->fmt), get_type_string(attr->type),
+         get_qnt_type_string(attr->qnt_type), attr->zp, attr->scale);
+}
+
+
+
+int main(int argc, char **argv)
+{
+    const char *modelPath = argv[1];
+    const char *imagePath = argv[2];
+
+
+    rknn_app_context_t rknn_app_ctx;
+    memset(&rknn_app_ctx, 0, sizeof(rknn_app_context_t));
+    rknn_context ctx = 0;
+    init_yolov8_model(modelPath, &rknn_app_ctx);
+
+    /*
+
+    int            model_data_size = 0;
+    unsigned char* model_data      = load_model(modelPath, model_data_size);
+
+
+    int ret = rknn_init(&ctx, model_data, model_data_size, 0, NULL);
+    printf("RKNN INIT Ret: %d\n", ret);
+    free(model_data);
+
+
+
+    rknn_input_output_num io_num;
+    ret = rknn_query(ctx, RKNN_QUERY_IN_OUT_NUM, &io_num, sizeof(io_num));
+    if (ret != RKNN_SUCC)
+    {
+        printf("rknn_query fail! ret=%d\n", ret);
+        return -1;
+    }
+    printf("\nmodel input num: %d\n", io_num.n_input);
+    rknn_tensor_attr input_attrs[io_num.n_input];
+    memset(input_attrs, 0, sizeof(input_attrs));
+    for(uint32_t i = 0; i < io_num.n_input; i++) {
+        input_attrs[i].index = i;
+        ret                  = rknn_query(ctx, RKNN_QUERY_INPUT_ATTR, &(input_attrs[i]), sizeof(rknn_tensor_attr));
+        if (ret < 0) {
+            printf("rknn_init error ret=%d\n", ret);
+            return -1;
+        }
+        dump_tensor_attr(&(input_attrs[i]));
+    }
+
+    printf("\nmodel output num: %d\n", io_num.n_output);
+    rknn_tensor_attr output_attrs[io_num.n_output];
+    memset(output_attrs, 0, sizeof(output_attrs));
+    for(uint32_t i = 0; i < io_num.n_output; i++) {
+        output_attrs[i].index = i;
+        ret                   = rknn_query(ctx, RKNN_QUERY_OUTPUT_ATTR, &(output_attrs[i]), sizeof(rknn_tensor_attr));
+        dump_tensor_attr(&(output_attrs[i]));
+    }
+
+    // Set to context
+    rknn_app_ctx.rknn_ctx = ctx;
+    rknn_app_ctx.is_quant = true;
+
+
+    rknn_app_ctx.io_num = io_num;
+    rknn_app_ctx.input_attrs = (rknn_tensor_attr *)malloc(io_num.n_input * sizeof(rknn_tensor_attr));
+    memcpy(rknn_app_ctx.input_attrs, input_attrs, io_num.n_input * sizeof(rknn_tensor_attr));
+    rknn_app_ctx.output_attrs = (rknn_tensor_attr *)malloc(io_num.n_output * sizeof(rknn_tensor_attr));
+    memcpy(rknn_app_ctx.output_attrs, output_attrs, io_num.n_output * sizeof(rknn_tensor_attr));
+
+    if (input_attrs[0].fmt == RKNN_TENSOR_NCHW){
+        printf("model input is NCHW\n");
+        rknn_app_ctx.model_channel = input_attrs[0].dims[1];
+        rknn_app_ctx.model_height = input_attrs[0].dims[2];
+        rknn_app_ctx.model_width = input_attrs[0].dims[3];
+    }
+    else{
+        printf("model input is NHWC\n");
+        rknn_app_ctx.model_height = input_attrs[0].dims[1];
+        rknn_app_ctx.model_width = input_attrs[0].dims[2];
+        rknn_app_ctx.model_channel = input_attrs[0].dims[3];
+    }
+    printf("model input height=%d, width=%d, channel=%d\n",
+           rknn_app_ctx.model_height, rknn_app_ctx.model_width, rknn_app_ctx.model_channel);
+
+    if(ret != 0){
+        printf("init_yolo_model fail! ret=%d model_path=%s\n", ret, modelPath);
+        return ret;
+    }*/
+    
+
+
+    rknn_input inputs[rknn_app_ctx.io_num.n_input];
+    rknn_output outputs[rknn_app_ctx.io_num.n_output];
+
+    cv::Mat img_o = cv::imread(imagePath);
+    cv::Mat img;
+    cv::cvtColor(img_o, img, cv::COLOR_BGR2RGB);
+
+    void* buf = nullptr;
+    buf = (void*)img.data;
+
+
+    inputs[0].index = 0;
+    inputs[0].type = RKNN_TENSOR_INT8;
+    inputs[0].fmt = RKNN_TENSOR_NHWC;
+    inputs[0].size = rknn_app_ctx.model_width * rknn_app_ctx.model_height * rknn_app_ctx.model_channel;
+    inputs[0].buf = buf;
+
+    int ret = rknn_inputs_set(rknn_app_ctx.rknn_ctx, rknn_app_ctx.io_num.n_input, inputs);
+    /*rknn_run(rknn_app_ctx.rknn_ctx, nullptr);
+    rknn_outputs_get(rknn_app_ctx.rknn_ctx, rknn_app_ctx.io_num.n_output, outputs, NULL);
+    object_detect_result_list od_results;
+
+    post_process(&rknn_app_ctx, outputs, 0.25, 0.45, 1, 1, &od_results);
+    
+
+
+    for (int i = 0; i < od_results.count; i++)
+    {
+	object_detect_result *det_result = &(od_results.results[i]);
+	int x1 = det_result->box.left;
+        int y1 = det_result->box.top;
+        int x2 = det_result->box.right;
+        int y2 = det_result->box.bottom;
+	printf("%d\n", x1);
+
+    }*/
+
+
+    return 0;
+}
