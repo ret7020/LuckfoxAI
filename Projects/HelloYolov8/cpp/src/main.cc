@@ -29,11 +29,6 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 
-
-
-/*-------------------------------------------
-                  Main Function
--------------------------------------------*/
 int main(int argc, char **argv)
 {
     if (argc != 3)
@@ -91,6 +86,17 @@ int main(int argc, char **argv)
     post_process(&rknn_app_ctx, rknn_app_ctx.output_mems, 0.25, 0.45, &od_results);
     //rknn_outputs_get(rknn_app_ctx.rknn_ctx, rknn_app_ctx.io_num.n_output, outputs, NULL);
     printf("%d\n\n", od_results.count);
+    for (int i = 0; i < od_results.count; i++)
+    {
+	    object_detect_result *det_result = &(od_results.results[i]);
+	    int x1 = det_result->box.left;
+            int y1 = det_result->box.top;
+	    int x2 = det_result->box.right;
+	    int y2 = det_result->box.bottom;
+	    cv::Rect r = cv::Rect(x1, y1, x2 - x1, y2 - y1); 
+	    cv::rectangle(img, r, cv::Scalar(255,0,0), 1, 8, 0);
+    }
+    cv::imwrite("out.jpg", img);
 
 
   
