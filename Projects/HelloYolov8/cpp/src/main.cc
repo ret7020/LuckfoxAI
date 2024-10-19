@@ -37,6 +37,7 @@ int main(int argc, char **argv)
     int ret;
     rknn_app_context_t rknn_app_ctx;
     memset(&rknn_app_ctx, 0, sizeof(rknn_app_context_t));
+    printf("Context\n");
 
     init_post_process();
 
@@ -45,15 +46,27 @@ int main(int argc, char **argv)
     {
         printf("init_yolov8_model fail! ret=%d model_path=%s\n", ret, modelPath);
 	return 1;
-    }
+    } else {printf("Init ok\n");}
 
     // If yolo OK
     // cv::Mat image = cv::imread(imagePath); // Read from file
     // cv::Mat bgr640(640, 640, CV_8UC3, rknn_app_ctx.input_mems[0]->virt_addr); // Feed to yolo
     // cv::resize(image, bgr640, cv::Size(640, 640), 0, 0, cv::INTER_LINEAR);
     //
+    //
+    //
+    //cv::Mat img = cv::imread(imagePath);
+
  
     image_buffer_t src_image;
+
+    //src_image.width = img.cols;
+    //src_image.height = img.rows;
+    //src_image.width_stride = img.step[1];  // Distance between elements in a row
+    //src_image.height_stride = img.step[0];
+
+    //src_image.format = IMAGE_FORMAT_RGB888;
+
     memset(&src_image, 0, sizeof(image_buffer_t));
     ret = read_image(imagePath, &src_image);
 
@@ -72,6 +85,8 @@ int main(int argc, char **argv)
 
 
     object_detect_result_list od_results;
+
+
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     ret = inference_yolov8_model(&rknn_app_ctx, &src_image, &od_results);
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
@@ -80,10 +95,17 @@ int main(int argc, char **argv)
     printf("Objects found: %d\n", od_results.count);
     for (int i = 0; i < od_results.count; i++)
     {
-	    object_detect_result *det_result = &(od_results.results[i]);
-	    printf("%s\n", coco_cls_to_name(det_result->cls_id));
+	object_detect_result *det_result = &(od_results.results[i]);
+	int x1 = det_result->box.left;
+        int y1 = det_result->box.top;
+        int x2 = det_result->box.right;
+        int y2 = det_result->box.bottom;
+	printf("%d\n", x1);
 
+	draw_rectangle(&src_image, x1, y1, x2 - x1, y2 - y1, COLOR_BLUE, 3);
+	//printf("%s\n", coco_cls_to_name(det_result->cls_id));
     }
+    write_image("out.png", &src_image);
 
 
 

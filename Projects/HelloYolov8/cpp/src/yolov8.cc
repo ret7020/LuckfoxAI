@@ -191,7 +191,7 @@ int inference_yolov8_model(rknn_app_context_t *app_ctx, image_buffer_t *img, obj
     const float box_conf_threshold = BOX_THRESH; // 默认的置信度阈值
     int bg_color = 114;
     
-    if ((!app_ctx) || !(img) || (!od_results))
+    if ((!app_ctx) || (!od_results))
     {
         return -1;
     }
@@ -221,6 +221,7 @@ int inference_yolov8_model(rknn_app_context_t *app_ctx, image_buffer_t *img, obj
 
     // Run
     printf("rknn_run\n");
+    
     ret = rknn_run(app_ctx->rknn_ctx, nullptr);
     if (ret < 0) {
         printf("rknn_run fail! ret=%d\n", ret);
