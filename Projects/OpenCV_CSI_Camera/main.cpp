@@ -29,10 +29,12 @@ int main()
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 		cap >> bgr;
 		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+		printf("Get frame - OK\n");
 		double fps = 1 / std::chrono::duration<double>(end - begin).count();
 		avgFps += fps;
 		framesRead++;
 		if (bgr.empty()) break;
+		cv::imwrite("captured.jpg", bgr);
 	}
 	printf("AVG FPS: %lf\n", avgFps / framesRead);
 
