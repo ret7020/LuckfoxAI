@@ -9,7 +9,7 @@
 #include <charconv>
 #include <string>
 
-
+#define DEUBUG
 #define WORKING_BAUD B115200
 #define MAX_RX_BYTES 2048
 
@@ -84,6 +84,9 @@ public:
 		{
 
 			if (sendCommand("AT\r", rxBuf)){
+#if DEBUG
+				printf("%s\n", rxBuf);
+#endif
 				if (rxBuf[0] == 'O' && rxBuf[1] == 'K' ) return true;
 			}
 				

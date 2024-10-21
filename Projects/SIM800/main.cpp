@@ -9,6 +9,7 @@
 
 int main()
 {
+	
 	SIM800 module = SIM800(MODULE_UART);
 	int initStatus = module.init();
 	printf("Init status: %d\n", initStatus);
@@ -27,4 +28,5 @@ int main()
 	} else return 1;
 
 	module.finishInternet();
+	return 0;
 }
