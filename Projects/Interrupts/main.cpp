@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <poll.h>
 #include <string.h>
-
+#include <stdint.h>
 
 int exportPin(uint8_t pin)
 {
@@ -29,42 +29,46 @@ int setDirPin(uint8_t pin, const char *dir)
     return 0;
 }
 
-int setDirInterrupt(uint8_t pin, const char *type)
+int setInterruptType(uint8_t pin, const char *type)
 {
     char interruptPath[50];
     snprintf(interruptPath, sizeof(interruptPath), "/sys/class/gpio/gpio%d/edge", pin);
     FILE *interruptFile = fopen(interruptPath, "w");
     if (interruptFile == NULL)
         return -1;
-    fprintf(interruptFile, dir);
+    fprintf(interruptFile, type);
     fclose(interruptFile);
 
     return 0;
 }
 
 
-int main() {
+int main()
+{
     exportPin(57);
     setDirPin(57, "in");
-    setDirPin(57, "rising"); // rising/falling/both
+    setInterruptType(57, "rising"); // rising/falling/both
 
     int fd = open("/sys/class/gpio/gpio57/value", O_RDONLY | O_NONBLOCK);
-    if (fd < 0) {
+    if (fd < 0)
+    {
         perror("Unable to open GPIO value file");
         return 1;
-    } 
+    }
 
     struct pollfd pfd;
     pfd.fd = fd;
     pfd.events = POLLPRI;
 
-    while (1) {
+    while (1)
+    {
         int ret = poll(&pfd, 1, -1);
-        if (ret > 0) {
+        if (ret > 0)
+        {
             char buf[3];
             lseek(fd, 0, SEEK_SET);
             read(fd, buf, sizeof(buf));
-	    printf("Val: %s\n", buf);
+            printf("Val: %s\n", buf);
             printf("Interrupt detected!\n");
         }
     }
@@ -72,4 +76,3 @@ int main() {
     close(fd);
     return 0;
 }
-
