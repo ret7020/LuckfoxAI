@@ -11,6 +11,15 @@
 #define MODEL_INPUT_SIZE 640
 #define CAMERA_DEV 11
 
+cv::Scalar colorMap[4] = {
+    cv::Scalar(255, 0, 0),
+    cv::Scalar(0, 255, 0),
+    cv::Scalar(0, 0, 255),
+    cv::Scalar(255, 255, 0)
+};
+
+int c_x =  0, c_y = 0;
+
 int main(int argc, char **argv)
 {
     if (argc != 2)
@@ -33,11 +42,15 @@ int main(int argc, char **argv)
     cv::Mat bgr640(MODEL_INPUT_SIZE, MODEL_INPUT_SIZE, CV_8UC3, rknn_app_ctx.input_mems[0]->virt_addr);
 
     cv::VideoCapture cap;
-    // OpenCV can't read square images
+
     cap.set(cv::CAP_PROP_FRAME_WIDTH, MODEL_INPUT_SIZE);
     cap.set(cv::CAP_PROP_FRAME_HEIGHT, MODEL_INPUT_SIZE);
     cap.open(CAMERA_DEV);
     cv::Mat camFrame;
+
+    cv::VideoWriter http;
+    http.open("httpjpg", 7766);
+
     while (1)
     {
         cap >> camFrame;
@@ -53,11 +66,16 @@ int main(int argc, char **argv)
             int y1 = det_result->box.top;
             int x2 = det_result->box.right;
             int y2 = det_result->box.bottom;
+
+            c_x = x1 + (x2 - x1) / 2;
+            c_y = y1 + (y2 - y1) / 2;
+
             cv::Rect r = cv::Rect(x1, y1, x2 - x1, y2 - y1);
             printf("%d\n", det_result->cls_id);
-            cv::rectangle(camFrame, r, cv::Scalar(255, 0, 0), 1, 8, 0);
+            cv::rectangle(camFrame, r, colorMap[det_result->cls_id], 3, 8, 0);
+            cv::circle(camFrame, cv::Point(c_x, c_y), 5, cv::Scalar(0, 0, 255), -1);
         }
-        cv::imwrite("out.jpg", camFrame);
+        http << camFrame;
     }
 
     return 0;

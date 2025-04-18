@@ -495,8 +495,7 @@ static int process_i8_rv1106(int8_t *box_tensor, int32_t box_zp, float box_scale
             }
         }
     }
-    printf("validCount=%d\n", validCount);
-    printf("grid h-%d, w-%d, stride %d\n", grid_h, grid_w, stride);
+    
     return validCount;
 }
 #endif
