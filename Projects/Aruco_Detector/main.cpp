@@ -26,7 +26,7 @@ int main()
 
 	cv::Mat bgr;
 	cv::aruco::DetectorParameters detectorParams = cv::aruco::DetectorParameters();
-	cv::aruco::Dictionary dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
+	cv::aruco::Dictionary dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_5X5_50);
 	cv::aruco::ArucoDetector detector(dictionary, detectorParams);
 
 	std::vector<int> markerIds;
@@ -36,13 +36,16 @@ int main()
 	for (int i = 0; i < 5; i++){cap >> bgr;}
 	
 	while (1){
-		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+		cap >> bgr;
+
+		// std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 		detector.detectMarkers(bgr, markerCorners, markerIds, rejectedCandidates);
 		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-		printf("Det FPS: %lf\n", 1 / std::chrono::duration<double>(end - begin).count());
+		// printf("Det FPS: %lf\n", 1 / std::chrono::duration<double>(end - begin).count());
+		cv::aruco::drawDetectedMarkers(bgr, markerCorners, markerIds);
 
-		printf("Count: %d\n", markerIds.size());
-		cap >> bgr;
+
+		// printf("Count: %d\n", markerIds.size());
 		http << bgr;
 	}
 
